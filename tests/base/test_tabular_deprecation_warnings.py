@@ -86,6 +86,7 @@ def test_deprecation_y_pred_train_single_dataset():
         _ = WeakSegmentsPerformance().run(ds, y_pred_train=y_pred_train, y_proba_train=y_proba_train)
 
 
+@pytest.mark.skip(reason="y_pred_test and y_proba_test are deprecated and ignored")
 def test_deprecation_y_pred_test_single_dataset():
     ds = Dataset(
         pd.DataFrame(

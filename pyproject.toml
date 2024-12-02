@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "eh-tabular-deepchecks"
 version = "0.0.0"
-authors = ["deepchecks","DanielAvdar <66269169+DanielAvdar@users.noreply.github.com>"]
+authors = ["deepchecks", "DanielAvdar <66269169+DanielAvdar@users.noreply.github.com>"]
 license = "AGPL-3.0"
 readme = "README.md"
 homepage = "https://github.com/DanielAvdar/deepchecks"
@@ -14,59 +14,33 @@ packages = [{ include = "deepchecks", from = "." }]
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
 pandas = ">=1.1.5,<2.3.0"
-numpy = ">=1.22.2"
 scikit-learn = "*"
 jsonpickle = ">=2"
 PyNomaly = ">=0.3.3"
-ipython = ">=7.15.0"
-ipykernel = ">=5.3.0"
-ipywidgets = ">=8"
-typing_extensions = ">=4.0.0"
 tqdm = ">=4.62.3"
 category-encoders = ">=2.3.0"
-statsmodels = ">=0.13.5"
-scipy = "*"
-plotly = ">=5.13.1"
-matplotlib = ">=3.3.4"
+matplotlib = ">=3.0.1"
 beautifulsoup4 = ">=4.11.1"
-requests = ">=2.22.0"
-jupyter-server = ">=2.7.2"
 
+plotly = ">=5.0.1"
 
+jinja2 = ">=3.0.1"
+
+ipykernel = ">=5.3.0"
+ipywidgets = ">=8"
 [tool.poetry.dev-dependencies]
-pydocstyle = "*"
 pytest = ">=8.0.0"
 pytest-cov = "*"
 pyhamcrest = "*"
-nbval = "*"
-coveralls = "*"
 tox = "*"
 gower = "*"
 deepdiff = "*"
-#scikit-learn = "==1.0.2"
-#pandas = "==1.3.5"
 catboost = "*"
 lightgbm = "*"
 xgboost = "*"
-jupyter = "*"
-jupyterlab = "*"
-notebook = "*"
-#kaleido = "*"
-matplotlib = ">=3.2.2"
-numpy = ">=1.18.5"
-opencv-python = ">=4.1.2"
 
-PyYAML = ">=5.3.1"
-requests = ">=2.23.0"
-scipy = "*"
-tqdm = ">=4.41.0"
-seaborn = ">=0.11.0"
-beautifulsoup4 = ">=4.11.1"
-tornado = ">=6.3.3"
+setuptools = "*"
 pyarrow = ">=14.0.1"
-aiohttp = ">=3.9.0"
-umap-learn = ">=0.5.4"
-
 pre-commit = "*"
 
 [build-system]
@@ -78,7 +52,7 @@ line-length = 120
 include = ["deepchecks/**"]
 
 [tool.ruff.lint]
-select = ["F", "B", "I",  "W", "E", "A", "N"]
+select = ["F", "B", "I", "W", "E", "A", "N"]
 fixable = ["ALL"]
 
 [tool.ruff.lint.isort]
