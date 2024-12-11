@@ -249,9 +249,11 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         """Handle display map instance item."""
         tab = Tab()
         children = []
+        titles = []  # Create a list to store titles
 
-        for i, (name, display) in enumerate(item.items()):
-            tab.set_title(i, name)
+        # First collect all children and titles
+        for name, display in item.items():
+            titles.append(name)  # Add title to list
             children.append(VBox(children=cls.handle_display(
                 display,
                 include_header=False,
@@ -259,7 +261,10 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
                 **kwargs
             )))
 
+        # Set all properties at once
         tab.children = children
+        tab.titles = tuple(titles)  # Set all titles at once
+
         style = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {min-width: fit-content;}</style>'
         return VBox(children=[
             HTML(value=style),
