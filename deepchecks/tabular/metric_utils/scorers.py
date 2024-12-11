@@ -25,7 +25,7 @@ from sklearn.metrics._scorer import _BaseScorer
 from sklearn.preprocessing import OneHotEncoder
 
 try:
-    from sklearn.metrics._scorer import _ProbaScorer
+    from sklearn.metrics._scorer import _ProbaScorer, _ThresholdScorer
     has_proba_scorer_import = True
 except ImportError:
     has_proba_scorer_import = False
@@ -231,7 +231,7 @@ class DeepcheckScorer:
         self.model_classes = model_classes
         self.observed_classes = observed_classes
         self._is_proba_scorer = (
-            (has_proba_scorer_import and isinstance(self.scorer, _ProbaScorer)) or
+            (has_proba_scorer_import and isinstance(self.scorer, (_ProbaScorer, _ThresholdScorer))) or
             (not has_proba_scorer_import and 'predict_proba' in getattr(self.scorer, '_response_method', ''))
         )
 
