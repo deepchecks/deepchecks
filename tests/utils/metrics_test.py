@@ -162,13 +162,11 @@ def test_regression_metrics(diabetes, diabetes_model):
     score_r_2 = r_2_deepchecks_scorer(diabetes_model, ds)
     assert_that(score_r_2, close_to(0.85, 0.01))
 
-
 def test_auc_on_regression_task_raises_error(diabetes, diabetes_model):
     ds, _ = diabetes
 
     # Act & Assert
     auc_deepchecks_scorer = DeepcheckScorer('roc_auc', model_classes=None, observed_classes=None)
-    auc_deepchecks_scorer(diabetes_model, ds)
     assert_that(calling(auc_deepchecks_scorer).with_args(diabetes_model, ds),
                 raises(DeepchecksValueError,
                        'Can\'t compute scorer '
