@@ -33,8 +33,7 @@ except ImportError:
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
 except ImportError:
-    from sklearn.metrics import \
-        f1_score, recall_score, precision_score, jaccard_score  # noqa: F401  pylint: disable=ungrouped-imports
+    from sklearn.metrics import f1_score, recall_score, precision_score, jaccard_score  # noqa: F401  pylint: disable=ungrouped-imports
 
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
@@ -122,18 +121,18 @@ regression_scorers_higher_is_better_dict = {
 
 common_classification_metrics = {
     'accuracy': get_scorer('accuracy'),
-    'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
-    'precision_micro': make_scorer(precision_score, average='micro', zero_division=0),
-    'precision_weighted': make_scorer(precision_score, average='weighted', zero_division=0),
-    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0),
-    'recall_micro': make_scorer(recall_score, average='micro', zero_division=0),
-    'recall_weighted': make_scorer(recall_score, average='weighted', zero_division=0),
-    'f1_macro': make_scorer(f1_score, average='macro', zero_division=0),
-    'f1_micro': make_scorer(f1_score, average='micro', zero_division=0),
-    'f1_weighted': make_scorer(f1_score, average='weighted', zero_division=0),
-    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0),
-    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0),
-    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0),
+    'precision_macro': make_scorer(precision_score, average='macro', zero_division=0, pos_label=None),
+    'precision_micro': make_scorer(precision_score, average='micro', zero_division=0, pos_label=None),
+    'precision_weighted': make_scorer(precision_score, average='weighted', zero_division=0, pos_label=None),
+    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0, pos_label=None),
+    'recall_micro': make_scorer(recall_score, average='micro', zero_division=0, pos_label=None),
+    'recall_weighted': make_scorer(recall_score, average='weighted', zero_division=0, pos_label=None),
+    'f1_macro': make_scorer(f1_score, average='macro', zero_division=0, pos_label=None),
+    'f1_micro': make_scorer(f1_score, average='micro', zero_division=0, pos_label=None),
+    'f1_weighted': make_scorer(f1_score, average='weighted', zero_division=0, pos_label=None),
+    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0, pos_label=None),
+    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0, pos_label=None),
+    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0, pos_label=None),
 }
 
 binary_scorers_dict = {
