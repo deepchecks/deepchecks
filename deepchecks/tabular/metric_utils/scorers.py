@@ -33,7 +33,8 @@ except ImportError:
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
 except ImportError:
-    from sklearn.metrics import f1_score, recall_score, precision_score, jaccard_score  # noqa: F401  pylint: disable=ungrouped-imports
+    from sklearn.metrics import \
+        f1_score, recall_score, precision_score, jaccard_score  # noqa: F401  pylint: disable=ungrouped-imports
 
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
