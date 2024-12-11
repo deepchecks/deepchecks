@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        scikit-version: [ '1.6.0' ]
+        scikit-version: [ '1.3.2', '1.6.0' ]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v3
