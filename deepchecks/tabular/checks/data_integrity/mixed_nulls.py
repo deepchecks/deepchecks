@@ -14,7 +14,6 @@ from typing import Dict, Iterable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_categorical_dtype
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -105,7 +104,7 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-            if is_categorical_dtype(column_data) is True:
+            if isinstance(column_data.dtype, pd.CategoricalDtype):
                 # NOTE:
                 # 'pandas.Series.value_counts' and 'pandas.Series.apply'
                 # work in an unusual way with categorical data types

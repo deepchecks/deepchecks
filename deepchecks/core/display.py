@@ -19,7 +19,8 @@ import typing as t
 from multiprocessing import get_context, process
 from tempfile import NamedTemporaryFile
 
-from IPython.core.display import display, display_html
+from IPython.core.display import display_html
+from IPython.display import display
 from ipywidgets import Widget
 
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
@@ -105,7 +106,7 @@ class DisplayableResult(abc.ABC):
         elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
-            display_html(self.widget_serializer.serialize(
+            display(self.widget_serializer.serialize(
                 output_id=unique_id,
                 **kwargs
             ))
