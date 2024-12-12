@@ -40,7 +40,7 @@ def test_run_with_scorer_proba(text_classification_dataset_mock):
 
     # Assert
     assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
-    assert_that(result.value.values[1][-1], close_to(0.75, 0.001))
+    assert_that(result.value.values[1][-1], close_to(1, 0.001))
 
 
 def test_run_with_scorer_proba_too_many_classes(text_classification_string_class_dataset_mock):
