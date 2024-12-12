@@ -124,7 +124,7 @@ def test_cross_entropy_lending_club(lending_club_split_dataset_and_model):
 
     # Act
     score = calculate_neg_cross_entropy_per_sample(test_ds.label_col, probas, eps=eps)
-    score_sklearn = log_loss(test_ds.label_col, probas, eps=eps)
+    score_sklearn = log_loss(test_ds.label_col, probas)
 
     # Assert
     assert_that(score.mean(), close_to(-1 * 0.524, 0.01))
@@ -162,13 +162,11 @@ def test_regression_metrics(diabetes, diabetes_model):
     score_r_2 = r_2_deepchecks_scorer(diabetes_model, ds)
     assert_that(score_r_2, close_to(0.85, 0.01))
 
-
 def test_auc_on_regression_task_raises_error(diabetes, diabetes_model):
     ds, _ = diabetes
 
     # Act & Assert
     auc_deepchecks_scorer = DeepcheckScorer('roc_auc', model_classes=None, observed_classes=None)
-
     assert_that(calling(auc_deepchecks_scorer).with_args(diabetes_model, ds),
                 raises(DeepchecksValueError,
                        'Can\'t compute scorer '

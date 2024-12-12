@@ -104,6 +104,21 @@ jobs:
       - name: Run suite test
         run: make test args=tests/tabular/suites
 
+  scikit-testsnew:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scikit-version: [ '1.3.2', '1.6.0' ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.9"
+      - name: Setup env and dev requirements
+        run: make env requirements dev-requirements && pip install scikit-learn==${{ matrix.scikit-version }}
+      - name: Run suite test
+        run: make test args=tests/tabular/suites
+
   dependencies-license-check:
     runs-on: ubuntu-latest
     steps:

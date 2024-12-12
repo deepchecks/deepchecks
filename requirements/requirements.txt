@@ -1,7 +1,7 @@
 pandas>=1.1.5
 numpy>=1.19; python_version < '3.8'
 numpy>=1.22.2; python_version >= '3.8'
-scikit-learn>=0.23.2, <1.4.0
+scikit-learn>=0.23.2
 jsonpickle>=2
 PyNomaly>=0.3.3
 
@@ -26,9 +26,7 @@ importlib_metadata>=1.4; python_version < '3.8'
 # is updated, explicitly add it here
 statsmodels>=0.11.0; python_version < '3.7'
 statsmodels>=0.13.5; python_version >= '3.7'
-# Remove the <=1.10.1 dependency below once sklearn's issue is fixed. The higher version causes
-# issues with sklearn's _most_frequent() function using scipy's mode() function
-scipy>=1.4.1, <=1.10.1
+scipy>=1.4.1
 dataclasses>=0.6; python_version < '3.7'
 plotly>=5.13.1
 matplotlib>=3.3.4
