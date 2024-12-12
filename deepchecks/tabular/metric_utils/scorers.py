@@ -21,8 +21,14 @@ from packaging import version
 from sklearn import __version__ as scikit_version
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, log_loss, make_scorer, mean_absolute_error, mean_squared_error
-from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
+from sklearn.metrics._scorer import _BaseScorer
 from sklearn.preprocessing import OneHotEncoder
+
+try:
+    from sklearn.metrics._scorer import _ProbaScorer, _ThresholdScorer
+    has_proba_scorer_import = True
+except ImportError:
+    has_proba_scorer_import = False
 
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
@@ -116,18 +122,18 @@ regression_scorers_higher_is_better_dict = {
 
 common_classification_metrics = {
     'accuracy': get_scorer('accuracy'),
-    'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
-    'precision_micro': make_scorer(precision_score, average='micro', zero_division=0),
-    'precision_weighted': make_scorer(precision_score, average='weighted', zero_division=0),
-    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0),
-    'recall_micro': make_scorer(recall_score, average='micro', zero_division=0),
-    'recall_weighted': make_scorer(recall_score, average='weighted', zero_division=0),
-    'f1_macro': make_scorer(f1_score, average='macro', zero_division=0),
-    'f1_micro': make_scorer(f1_score, average='micro', zero_division=0),
-    'f1_weighted': make_scorer(f1_score, average='weighted', zero_division=0),
-    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0),
-    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0),
-    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0),
+    'precision_macro': make_scorer(precision_score, average='macro', zero_division=0, pos_label=None),
+    'precision_micro': make_scorer(precision_score, average='micro', zero_division=0, pos_label=None),
+    'precision_weighted': make_scorer(precision_score, average='weighted', zero_division=0, pos_label=None),
+    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0, pos_label=None),
+    'recall_micro': make_scorer(recall_score, average='micro', zero_division=0, pos_label=None),
+    'recall_weighted': make_scorer(recall_score, average='weighted', zero_division=0, pos_label=None),
+    'f1_macro': make_scorer(f1_score, average='macro', zero_division=0, pos_label=None),
+    'f1_micro': make_scorer(f1_score, average='micro', zero_division=0, pos_label=None),
+    'f1_weighted': make_scorer(f1_score, average='weighted', zero_division=0, pos_label=None),
+    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0, pos_label=None),
+    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0, pos_label=None),
+    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0, pos_label=None),
 }
 
 binary_scorers_dict = {
@@ -225,6 +231,10 @@ class DeepcheckScorer:
         self.name = name if name else get_scorer_name(scorer)
         self.model_classes = model_classes
         self.observed_classes = observed_classes
+        self._is_proba_scorer = (
+            (has_proba_scorer_import and isinstance(self.scorer, (_ProbaScorer, _ThresholdScorer))) or
+            (not has_proba_scorer_import and 'predict_proba' in getattr(self.scorer, '_response_method', ''))
+        )
 
     @classmethod
     def filter_nulls(cls, dataset: 'tabular.Dataset') -> 'tabular.Dataset':
@@ -240,7 +250,7 @@ class DeepcheckScorer:
         """Run sklearn scorer on the labels and the pred/proba according to scorer type."""
         # pylint: disable=protected-access
         if isinstance(self.scorer, _BaseScorer):
-            if y_proba is not None and isinstance(self.scorer, _ProbaScorer):
+            if y_proba is not None and self._is_proba_scorer:
                 pred_to_use = y_proba
             else:
                 pred_to_use = y_pred
@@ -300,8 +310,7 @@ class DeepcheckScorer:
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
-        if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
-                                                                    'predict_proba'):
+        if self._is_proba_scorer and not hasattr(model, 'predict_proba'):  # pylint: disable=protected-access
             raise errors.DeepchecksValueError(
                 f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
                 f'not provided. Please use a model with predict_proba method or '
@@ -339,7 +348,7 @@ class DeepcheckScorer:
             # In case of single label on binary model, there is problem with scorers per class, since scikit-learn
             # scorers will return score only for the seen label (and not for the unseen label)
             if model.is_binary and len(original_label_col.unique()) == 1 and len(model.predictions.unique()) == 1 and \
-                        original_label_col[0] == model.predictions[0]:
+                    original_label_col[0] == model.predictions[0]:
                 seen_class = original_label_col[0]
                 unseen_class = self.model_classes[0] if seen_class == self.model_classes[1] \
                     else self.model_classes[1]
