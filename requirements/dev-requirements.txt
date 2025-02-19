@@ -31,6 +31,8 @@ jupyterlab
 notebook
 kaleido  # optional dependency, used by plotly to transform figures into images
 
+plotly<6
+
 # YoloV5
 matplotlib>=3.2.2
 numpy>=1.18.5
