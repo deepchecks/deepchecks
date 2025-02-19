@@ -36,7 +36,7 @@ env:
 jobs:
   # Build the documentation
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout deepchecks
         uses: actions/checkout@v4
@@ -62,7 +62,7 @@ jobs:
 
   # Push the documentation
   push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [build]
     if: github.event_name != 'pull_request'
     steps:

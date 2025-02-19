@@ -16,7 +16,7 @@ on:
 
 jobs:
   label-blank-issues:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: andymckay/labeler@1.0.4
         with:

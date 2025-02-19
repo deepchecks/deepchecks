@@ -20,7 +20,7 @@ env:
 
 jobs:
 #  Security-Check:
-#    runs-on: ubuntu-latest
+#    runs-on: ubuntu-22.04
 #    steps:
 #      - uses: actions/checkout@v4.3.4
 #      - name: Run Snyk to check for vulnerabilities
@@ -34,7 +34,7 @@ jobs:
 #        with:
 #          sarif_file: snyk.sarif
 #  Update-Version:
-#    runs-on: ubuntu-latest
+#    runs-on: ubuntu-22.04
 #    needs: Security-Check
 #    steps:
 #      - uses: actions/checkout@v4.3.4
@@ -48,7 +48,7 @@ jobs:
 #          commit-msg: New version release
 #          github-token: ${{ secrets.CI_GH_TOKEN }}
   Create-Release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
 

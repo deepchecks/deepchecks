@@ -19,7 +19,7 @@ env:
 jobs:
   labels:
     name: Validate Label 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: mheap/github-action-required-labels@v1
