@@ -6,14 +6,14 @@
 
 *       @deepchecks/deepchecks-team
 
-/docs/ @shir22 @noamzbr
+/docs/ @deepchecks/admin-team
 /docs/source/examples/ @deepchecks/deepchecks-team
 
-.github @noamzbr @shir22
+.github @deepchecks/admin-team
 
-README.md @shir22 @noamzbr
+README.md @deepchecks/admin-team
 
-requirements/ @noamzbr
+requirements/ @deepchecks/deepchecks-team
 deepchecks/core/ @deepchecks/algo-team
 tests/base @deepchecks/algo-team
 tests/serialization @deepchecks/algo-team
