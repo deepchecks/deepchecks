@@ -449,7 +449,7 @@ class PerformanceBias(SingleDatasetCheck):
 
         return fig
 
-    def add_condition_bounded_performance_difference(self, lower_bound, upper_bound=np.Inf):
+    def add_condition_bounded_performance_difference(self, lower_bound, upper_bound=np.inf):
         """Add condition - require performance difference to be between the given bounds.
 
         Performance difference is defined as (score - baseline).
@@ -477,7 +477,7 @@ class PerformanceBias(SingleDatasetCheck):
             bounded_performance_difference_condition,
         )
 
-    def add_condition_bounded_relative_performance_difference(self, lower_bound, upper_bound=np.Inf):
+    def add_condition_bounded_relative_performance_difference(self, lower_bound, upper_bound=np.inf):
         """Add condition - require relative performance difference to be between the given bounds.
 
         Relative performance difference is defined as (score - baseline) / baseline.
