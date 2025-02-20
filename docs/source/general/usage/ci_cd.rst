@@ -110,7 +110,7 @@ The yaml file for the GitHub Actions workflow is as follows:
 
     jobs:
       build:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         steps:
           - name: Checkout Repository
             uses: actions/checkout@v4
