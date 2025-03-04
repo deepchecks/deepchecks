@@ -27,7 +27,7 @@ from tqdm import tqdm
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
+from deepchecks.nlp.utils.text import hash_text, normalize_text, remove_punctuation
 from deepchecks.nlp.utils.text_properties_models import (check_nltk_resource, get_cmudict_dict, get_fasttext_model,
                                                          get_transformer_pipeline)
 from deepchecks.utils.function import run_available_kwargs
@@ -49,12 +49,13 @@ sentences_cache = {}
 secret_cache = {}
 
 
-def _aggregate_groups(v_list: list[float], indices_to_group: list[list[int]], agg_func: Callable[[np.ndarray], float]) -> list[float]:
-    v_array = np.array(v_list, dtype=np.float64)  # Convert to NumPy array for efficient operations
+def _aggregate_groups(scores: List[float], indices_to_group: List[List[int]],
+                      agg_func: Callable[[np.ndarray], float]) -> List[float]:
+    scores_array = np.array(scores, dtype=np.float64)
     averages = []
 
     for indices in indices_to_group:
-        values = v_array[indices]  # Extract values at the given indices
+        values = scores_array[indices]  # Extract values at the given indices
         valid_values = values[~np.isnan(values)]  # Filter out nans
 
         if valid_values.size > 0:
@@ -233,6 +234,7 @@ def predict_on_batch(
             current_index += len(text_chunks)
         else:
             text_list_to_predict.append(text)
+            indices_to_group.append([current_index])
             current_index += 1
 
     while reduced_batch_size >= 1:
@@ -564,7 +566,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
         {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
         {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-)
+    )
 
 ALL_PROPERTIES: Tuple[TextProperty, ...] = \
     (
@@ -577,7 +579,7 @@ ALL_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
         {'name': 'Sentences Count', 'method': sentences_count, 'output_type': 'numeric'},
         {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
-) + DEFAULT_PROPERTIES
+    ) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 
