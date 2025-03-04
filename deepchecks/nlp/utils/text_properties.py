@@ -38,7 +38,7 @@ __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 from deepchecks.utils.validation import is_sequence_not_str
 
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
-MAX_CHARS = 512  # Bert accepts max of 512 tokens, so without counting tokens we go for the lower bound.
+MAX_TOKENS = 512
 # all SPECIAL_CHARACTERS - all string.punctuation except for <>@[]^_`{|}~ - all whitespace
 NON_PUNCTUATION_SPECIAL_CHARS = frozenset(set(SPECIAL_CHARACTERS) - set(r"""!"#$%&'()*+,-./:;=?\@""")
                                           - set(string.whitespace))
@@ -47,6 +47,22 @@ textblob_cache = {}
 words_cache = {}
 sentences_cache = {}
 secret_cache = {}
+
+
+def _aggregate_groups(v_list: list[float], indices_to_group: list[list[int]], agg_func: Callable[[np.ndarray], float]) -> list[float]:
+    v_array = np.array(v_list, dtype=np.float64)  # Convert to NumPy array for efficient operations
+    averages = []
+
+    for indices in indices_to_group:
+        values = v_array[indices]  # Extract values at the given indices
+        valid_values = values[~np.isnan(values)]  # Filter out nans
+
+        if valid_values.size > 0:
+            averages.append(agg_func(valid_values))  # Aggregate valid values
+        else:
+            averages.append(np.nan)  # If all are NaN, return NaN
+
+    return averages
 
 
 def _split_to_words_with_cache(text: str) -> List[str]:
@@ -193,33 +209,31 @@ def subjectivity(text: str) -> float:
     return textblob_cache.get(hash_key).subjectivity
 
 
-def predict_on_batch(text_batch: Sequence[str], classifier,
-                     output_formatter: Callable[[Dict[str, Any]], float]) -> Sequence[float]:
+def predict_on_batch(
+        text_batch: Sequence[str],
+        classifier,
+        output_formatter: Callable[[Dict[str, Any]], float],
+        agg_func: Callable[[np.ndarray], float],
+) -> Sequence[float]:
     """Return prediction of huggingface Pipeline classifier."""
-    # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
     # If text is longer than classifier context window, sample it:
     text_list_to_predict = []
     reduced_batch_size = len(text_batch)  # Initialize the reduced batch size
     retry_count = 0
+    indices_to_group = []
+    current_index = 0
 
     for text in text_batch:
-        if len(text) > MAX_CHARS:
-            sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
-            text_to_use = ''
-            for sentence in sentences:
-                if len(text_to_use) + len(sentence) > MAX_CHARS:
-                    break
-                text_to_use += sentence + '. '
-
-            # if even one sentence is too long, use part of the first one:
-            if len(text_to_use) == 0:
-                if len(sentences) > 0:
-                    text_to_use = cut_string(sentences[0], MAX_CHARS)
-                else:
-                    text_to_use = None
-            text_list_to_predict.append(text_to_use)
+        if len(classifier.tokenizer.tokenize(text)) > MAX_TOKENS:
+            tokens = classifier.tokenizer.tokenize(text)
+            chunks = [tokens[i:i + MAX_TOKENS] for i in range(0, len(tokens), MAX_TOKENS)]
+            text_chunks = [classifier.tokenizer.convert_tokens_to_string(chunk) for chunk in chunks]
+            text_list_to_predict += text_chunks
+            indices_to_group.append(list(range(current_index, current_index + len(text_chunks))))
+            current_index += len(text_chunks)
         else:
             text_list_to_predict.append(text)
+            current_index += 1
 
     while reduced_batch_size >= 1:
         try:
@@ -234,15 +248,14 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
                             results.append(output_formatter(v))
                         except Exception:  # pylint: disable=broad-except
                             results.append(np.nan)
-                return results  # Return the results if prediction is successful
+            else:
+                v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
+                results = []
 
-            v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
-            results = []
+                for v in v_list:
+                    results.append(output_formatter(v))
 
-            for v in v_list:
-                results.append(output_formatter(v))
-
-            return results  # Return the results if prediction is successful
+            return _aggregate_groups(results, indices_to_group, agg_func)
 
         except Exception:  # pylint: disable=broad-except
             reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
@@ -292,7 +305,7 @@ def toxicity(
         score = v['score'] if (v['label'] == 'toxic') else 1 - v['score']
         return toxicity_calibrator.predict([score])[0]
 
-    return predict_on_batch(text_batch, toxicity_classifier, output_formatter)
+    return predict_on_batch(text_batch, toxicity_classifier, output_formatter, np.max)
 
 
 def fluency(
@@ -313,7 +326,7 @@ def fluency(
     def output_formatter(v):
         return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
 
-    return predict_on_batch(text_batch, fluency_classifier, output_formatter)
+    return predict_on_batch(text_batch, fluency_classifier, output_formatter, np.mean)
 
 
 def formality(
@@ -334,7 +347,7 @@ def formality(
     def output_formatter(v):
         return v['score'] if v['label'] == 'formal' else 1 - v['score']
 
-    return predict_on_batch(text_batch, formality_classifier, output_formatter)
+    return predict_on_batch(text_batch, formality_classifier, output_formatter, np.mean)
 
 
 def lexical_density(text: str) -> float:
