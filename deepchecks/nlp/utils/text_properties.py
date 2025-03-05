@@ -56,7 +56,7 @@ def _aggregate_groups(scores: List[float], indices_to_group: List[List[int]],
 
     for indices in indices_to_group:
         values = scores_array[indices]  # Extract values at the given indices
-        valid_values = values[~np.isnan(values)]  # Filter out nans
+        valid_values = values[~np.isnan(values)]  # Filter out NaNs
 
         if valid_values.size > 0:
             averages.append(agg_func(valid_values))  # Aggregate valid values
@@ -216,54 +216,41 @@ def predict_on_batch(
         output_formatter: Callable[[Dict[str, Any]], float],
         agg_func: Callable[[np.ndarray], float],
 ) -> Sequence[float]:
-    """Return prediction of huggingface Pipeline classifier."""
-    # If text is longer than classifier context window, sample it:
-    text_list_to_predict = []
-    reduced_batch_size = len(text_batch)  # Initialize the reduced batch size
-    retry_count = 0
-    indices_to_group = []
+    """Return prediction of a classifier with batching and fallback."""
+    indices_to_group, text_list_to_predict = [], []
     current_index = 0
 
     for text in text_batch:
-        if len(classifier.tokenizer.tokenize(text)) > MAX_TOKENS:
-            tokens = classifier.tokenizer.tokenize(text)
+        tokens = classifier.tokenizer.tokenize(text)
+        if len(tokens) > MAX_TOKENS:
             chunks = [tokens[i:i + MAX_TOKENS] for i in range(0, len(tokens), MAX_TOKENS)]
             text_chunks = [classifier.tokenizer.convert_tokens_to_string(chunk) for chunk in chunks]
-            text_list_to_predict += text_chunks
-            indices_to_group.append(list(range(current_index, current_index + len(text_chunks))))
-            current_index += len(text_chunks)
         else:
-            text_list_to_predict.append(text)
-            indices_to_group.append([current_index])
-            current_index += 1
+            text_chunks = [text]
 
-    while reduced_batch_size >= 1:
+        text_list_to_predict.extend(text_chunks)
+        indices_to_group.append(list(range(current_index, current_index + len(text_chunks))))
+        current_index += len(text_chunks)
+
+    batch_size, retries = len(text_batch), 0
+
+    while batch_size >= 1 and retries < 3:
         try:
-            if reduced_batch_size == 1 or retry_count == 3:
-                results = []
-                for text in text_list_to_predict:
-                    if text is None:
-                        results.append(np.nan)
-                    else:
-                        try:
-                            v = classifier(text)[0]
-                            results.append(output_formatter(v))
-                        except Exception:  # pylint: disable=broad-except
-                            results.append(np.nan)
+            if batch_size == 1:
+                results = [
+                    output_formatter(classifier(text)[0]) if text else np.nan
+                    for text in text_list_to_predict
+                ]
             else:
-                v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
-                results = []
-
-                for v in v_list:
-                    results.append(output_formatter(v))
+                results = [output_formatter(v) for v in classifier(text_list_to_predict, batch_size=batch_size)]
 
             return _aggregate_groups(results, indices_to_group, agg_func)
 
         except Exception:  # pylint: disable=broad-except
-            reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
-            retry_count += 1
+            batch_size = max(batch_size // 2, 1)
+            retries += 1
 
-    return [np.nan] * len(text_batch)  # Prediction failed, return NaN values for the original batch size
+    return [np.nan] * len(text_batch)  # Return NaN for all if prediction fails
 
 
 TOXICITY_CALIBRATOR = pathlib.Path(__file__).absolute().parent / 'assets' / 'toxicity_calibrator.pkl'
