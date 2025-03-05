@@ -27,7 +27,7 @@ from tqdm import tqdm
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
+from deepchecks.nlp.utils.text import hash_text, normalize_text, remove_punctuation
 from deepchecks.nlp.utils.text_properties_models import (check_nltk_resource, get_cmudict_dict, get_fasttext_model,
                                                          get_transformer_pipeline)
 from deepchecks.utils.function import run_available_kwargs
@@ -38,7 +38,7 @@ __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 from deepchecks.utils.validation import is_sequence_not_str
 
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
-MAX_CHARS = 512  # Bert accepts max of 512 tokens, so without counting tokens we go for the lower bound.
+MAX_TOKENS = 512
 # all SPECIAL_CHARACTERS - all string.punctuation except for <>@[]^_`{|}~ - all whitespace
 NON_PUNCTUATION_SPECIAL_CHARS = frozenset(set(SPECIAL_CHARACTERS) - set(r"""!"#$%&'()*+,-./:;=?\@""")
                                           - set(string.whitespace))
@@ -47,6 +47,23 @@ textblob_cache = {}
 words_cache = {}
 sentences_cache = {}
 secret_cache = {}
+
+
+def _aggregate_groups(scores: List[float], indices_to_group: List[List[int]],
+                      agg_func: Callable[[np.ndarray], float]) -> List[float]:
+    scores_array = np.array(scores, dtype=np.float64)
+    averages = []
+
+    for indices in indices_to_group:
+        values = scores_array[indices]  # Extract values at the given indices
+        valid_values = values[~np.isnan(values)]  # Filter out NaNs
+
+        if valid_values.size > 0:
+            averages.append(agg_func(valid_values))  # Aggregate valid values
+        else:
+            averages.append(np.nan)  # If all are NaN, return NaN
+
+    return averages
 
 
 def _split_to_words_with_cache(text: str) -> List[str]:
@@ -193,62 +210,47 @@ def subjectivity(text: str) -> float:
     return textblob_cache.get(hash_key).subjectivity
 
 
-def predict_on_batch(text_batch: Sequence[str], classifier,
-                     output_formatter: Callable[[Dict[str, Any]], float]) -> Sequence[float]:
-    """Return prediction of huggingface Pipeline classifier."""
-    # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
-    # If text is longer than classifier context window, sample it:
-    text_list_to_predict = []
-    reduced_batch_size = len(text_batch)  # Initialize the reduced batch size
-    retry_count = 0
+def predict_on_batch(
+        text_batch: Sequence[str],
+        classifier,
+        output_formatter: Callable[[Dict[str, Any]], float],
+        agg_func: Callable[[np.ndarray], float],
+) -> Sequence[float]:
+    """Return prediction of a classifier with batching and fallback."""
+    indices_to_group, text_list_to_predict = [], []
+    current_index = 0
 
     for text in text_batch:
-        if len(text) > MAX_CHARS:
-            sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
-            text_to_use = ''
-            for sentence in sentences:
-                if len(text_to_use) + len(sentence) > MAX_CHARS:
-                    break
-                text_to_use += sentence + '. '
-
-            # if even one sentence is too long, use part of the first one:
-            if len(text_to_use) == 0:
-                if len(sentences) > 0:
-                    text_to_use = cut_string(sentences[0], MAX_CHARS)
-                else:
-                    text_to_use = None
-            text_list_to_predict.append(text_to_use)
+        tokens = classifier.tokenizer.tokenize(text)
+        if len(tokens) > MAX_TOKENS:
+            chunks = [tokens[i:i + MAX_TOKENS] for i in range(0, len(tokens), MAX_TOKENS)]
+            text_chunks = [classifier.tokenizer.convert_tokens_to_string(chunk) for chunk in chunks]
         else:
-            text_list_to_predict.append(text)
+            text_chunks = [text]
 
-    while reduced_batch_size >= 1:
+        text_list_to_predict.extend(text_chunks)
+        indices_to_group.append(list(range(current_index, current_index + len(text_chunks))))
+        current_index += len(text_chunks)
+
+    batch_size, retries = len(text_batch), 0
+
+    while batch_size >= 1 and retries < 3:
         try:
-            if reduced_batch_size == 1 or retry_count == 3:
-                results = []
-                for text in text_list_to_predict:
-                    if text is None:
-                        results.append(np.nan)
-                    else:
-                        try:
-                            v = classifier(text)[0]
-                            results.append(output_formatter(v))
-                        except Exception:  # pylint: disable=broad-except
-                            results.append(np.nan)
-                return results  # Return the results if prediction is successful
+            if batch_size == 1:
+                results = [
+                    output_formatter(classifier(text)[0]) if text else np.nan
+                    for text in text_list_to_predict
+                ]
+            else:
+                results = [output_formatter(v) for v in classifier(text_list_to_predict, batch_size=batch_size)]
 
-            v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
-            results = []
-
-            for v in v_list:
-                results.append(output_formatter(v))
-
-            return results  # Return the results if prediction is successful
+            return _aggregate_groups(results, indices_to_group, agg_func)
 
         except Exception:  # pylint: disable=broad-except
-            reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
-            retry_count += 1
+            batch_size = max(batch_size // 2, 1)
+            retries += 1
 
-    return [np.nan] * len(text_batch)  # Prediction failed, return NaN values for the original batch size
+    return [np.nan] * len(text_batch)  # Return NaN for all if prediction fails
 
 
 TOXICITY_CALIBRATOR = pathlib.Path(__file__).absolute().parent / 'assets' / 'toxicity_calibrator.pkl'
@@ -292,7 +294,7 @@ def toxicity(
         score = v['score'] if (v['label'] == 'toxic') else 1 - v['score']
         return toxicity_calibrator.predict([score])[0]
 
-    return predict_on_batch(text_batch, toxicity_classifier, output_formatter)
+    return predict_on_batch(text_batch, toxicity_classifier, output_formatter, np.max)
 
 
 def fluency(
@@ -313,7 +315,7 @@ def fluency(
     def output_formatter(v):
         return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
 
-    return predict_on_batch(text_batch, fluency_classifier, output_formatter)
+    return predict_on_batch(text_batch, fluency_classifier, output_formatter, np.mean)
 
 
 def formality(
@@ -334,7 +336,7 @@ def formality(
     def output_formatter(v):
         return v['score'] if v['label'] == 'formal' else 1 - v['score']
 
-    return predict_on_batch(text_batch, formality_classifier, output_formatter)
+    return predict_on_batch(text_batch, formality_classifier, output_formatter, np.mean)
 
 
 def lexical_density(text: str) -> float:
@@ -551,7 +553,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
         {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
         {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-)
+    )
 
 ALL_PROPERTIES: Tuple[TextProperty, ...] = \
     (
@@ -564,7 +566,7 @@ ALL_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
         {'name': 'Sentences Count', 'method': sentences_count, 'output_type': 'numeric'},
         {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
-) + DEFAULT_PROPERTIES
+    ) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 

@@ -248,7 +248,8 @@ vision-gpu-tests: vision-requirements dev-requirements
 test-win:
 	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	@$(WIN_ENV)\Scripts\activate.bat
-	$(PIP_WIN) install -q \
+	@$(PIP_WIN) install -U pip wheel setuptools setuptools_scm
+	@$(PIP_WIN) install -q \
 			"torch==2.4.1" "torchvision==0.19.1" \
 			--index-url https://download.pytorch.org/whl/cpu;
 	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
