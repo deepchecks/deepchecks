@@ -31,7 +31,7 @@
 #        git config --global user.name "$(git --no-pager log --format=format:'%an' -n 1)"
 #        git config --global user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
 #    - name: Set up Python 3.9
-#      uses: actions/setup-python@v3
+#      uses: actions/setup-python@v5
 #      with:
 #        python-version: "3.9"
 #    - name: Set Up Env

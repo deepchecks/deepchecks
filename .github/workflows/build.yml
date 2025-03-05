@@ -34,7 +34,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Set Up Env
@@ -54,7 +54,7 @@ jobs:
     name: coveralls
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v3
+    - uses: actions/setup-python@v5
       with:
         python-version: "3.9"
     - name: Set Up Env
@@ -69,7 +69,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python 3.6
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v5
         with:
           python-version: 3.6
       - name: Set Up Env
@@ -83,7 +83,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.9
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9 #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
     - name: Run Tests
@@ -96,7 +96,7 @@ jobs:
         scikit-version: [ '0.23.2', '1.0.2', '1.1.0' ]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.8"
       - name: Setup env and dev requirements
@@ -111,7 +111,7 @@ jobs:
         scikit-version: [ '1.3.2', '1.6.0' ]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.9"
       - name: Setup env and dev requirements
@@ -127,7 +127,7 @@ jobs:
       with:
         fetch-depth: 0
     - name: Setup Python
-      uses: actions/setup-python@v3
+      uses: actions/setup-python@v5
       with:
         python-version: '3.9'
     - name: Get explicit and transitive dependencies
@@ -167,7 +167,7 @@ jobs:
 #    steps:
 #      - uses: actions/checkout@v4
 #      - name: Set up Python
-#        uses: actions/setup-python@v3
+#        uses: actions/setup-python@v5
 #        with:
 #          python-version: '3.7'
 #      - name: Set Up Env
