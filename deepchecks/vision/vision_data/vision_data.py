@@ -265,7 +265,12 @@ class VisionData:
         """Return the number of batches in the batch loader if it is known, otherwise returns None."""
         return len(self._batch_loader) if hasattr(self._batch_loader, '__len__') else None
 
-    def head(self, num_images_to_display: int = 5, show_in_window: bool = False, _force_create_html: bool = False):
+    def head(
+        self,
+        num_images_to_display: int = 5,
+        show_in_window: bool = False,
+        _force_create_html: bool = False  # pylint: disable=invalid-name
+    ):
         """Show data from a single batch of this VisionData. Works only inside a notebook.
 
         Parameters
