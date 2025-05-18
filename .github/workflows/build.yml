@@ -125,7 +125,7 @@ jobs:
         pip freeze > requirements-all.txt
     - name: Check python
       id: license_check_report
-      uses: pilosus/action-pip-license-checker@v0.6.1
+      uses: pilosus/action-pip-license-checker@v2
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
