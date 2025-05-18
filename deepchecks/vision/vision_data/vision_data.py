@@ -265,7 +265,7 @@ class VisionData:
         """Return the number of batches in the batch loader if it is known, otherwise returns None."""
         return len(self._batch_loader) if hasattr(self._batch_loader, '__len__') else None
 
-    def head(self, num_images_to_display: int = 5, show_in_window: bool = False):
+    def head(self, num_images_to_display: int = 5, show_in_window: bool = False, _force_create_html: bool = False):
         """Show data from a single batch of this VisionData. Works only inside a notebook.
 
         Parameters
@@ -275,7 +275,7 @@ class VisionData:
         show_in_window: bool, default = False
             Whether to open the head display in a new python window. requires pyqt5, pyqtwebengine libraries.
         """
-        if not (is_notebook() or is_sphinx()) and show_in_window is False:
+        if not _force_create_html and (not (is_notebook() or is_sphinx()) and show_in_window is False):
             print('head function outside a notebook must use `show_in_window = True`', file=sys.stderr)
             return
         if not isinstance(num_images_to_display, int):
