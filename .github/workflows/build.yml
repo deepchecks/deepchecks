@@ -118,7 +118,7 @@ jobs:
         python-version: '3.9'
     - name: Get explicit and transitive dependencies
       run: |
-        echo torch==1.10.2+cpu > constraints.txt
+        echo torch==1.11.0+cpu > constraints.txt
         pip install torch==1.11.0+cpu torchvision==0.11.3+cpu --index-url https://download.pytorch.org/whl/cpu
         pip install -r requirements/requirements.txt -c constraints.txt
         pip install -r requirements/vision-requirements.txt -c constraints.txt
