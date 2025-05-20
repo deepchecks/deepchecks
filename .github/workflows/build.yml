@@ -119,7 +119,7 @@ jobs:
     - name: Get explicit and transitive dependencies
       run: |
         echo torch==1.11.0+cpu > constraints.txt
-        pip install torch==1.11.0+cpu torchvision==0.11.3+cpu --index-url https://download.pytorch.org/whl/cpu
+        pip install torch==1.11.0+cpu torchvision==0.12.0+cpu --index-url https://download.pytorch.org/whl/cpu
         pip install -r requirements/requirements.txt -c constraints.txt
         pip install -r requirements/vision-requirements.txt -c constraints.txt
         pip install -r requirements/nlp-requirements.txt -c constraints.txt
