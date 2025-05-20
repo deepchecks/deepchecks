@@ -118,7 +118,7 @@ jobs:
         python-version: '3.9'
     - name: Get explicit and transitive dependencies
       run: |
-        pip install torch==1.10.2+cpu torchvision==0.11.3+cpu -f --index-url https://download.pytorch.org/whl/cpu
+        pip install torch==1.10.2+cpu torchvision==0.11.3+cpu --index-url https://download.pytorch.org/whl/cpu
         pip install -r requirements/requirements.txt
         pip install -r requirements/vision-requirements.txt
         pip install -r requirements/nlp-requirements.txt
