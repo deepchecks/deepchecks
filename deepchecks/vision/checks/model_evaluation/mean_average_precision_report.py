@@ -64,7 +64,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         rows = []
         for title, area_name in zip(
                 ['All', f'Small (area < {small_area}^2)', f'Medium ({small_area}^2 < area < {large_area}^2)',
-                 f'Large (area < {large_area}^2)'], ['all', 'small', 'medium', 'large']):
+                 f'Large ({large_area}^2 < area)'], ['all', 'small', 'medium', 'large']):
             rows.append([title, self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100),
                          self._ap_metric.get_classes_scores_at(res, iou=0.5, area=area_name, max_dets=100),
                          self._ap_metric.get_classes_scores_at(res, iou=0.75, area=area_name, max_dets=100)])
