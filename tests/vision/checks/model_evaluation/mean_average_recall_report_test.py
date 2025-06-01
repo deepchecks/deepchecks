@@ -50,9 +50,9 @@ def test_coco(coco_visiondata_test):
     assert_that(df.loc['Medium (32^2 < area < 96^2)', 'AR@10 (%)'], close_to(0.417, 0.001))
     assert_that(df.loc['Medium (32^2 < area < 96^2)', 'AR@100 (%)'], close_to(0.423, 0.001))
 
-    assert_that(df.loc['Large (area < 96^2)', 'AR@1 (%)'], close_to(0.481, 0.001))
-    assert_that(df.loc['Large (area < 96^2)', 'AR@10 (%)'], close_to(0.544, 0.001))
-    assert_that(df.loc['Large (area < 96^2)', 'AR@100 (%)'], close_to(0.549, 0.001))
+    assert_that(df.loc['Large (96^2 < area)', 'AR@1 (%)'], close_to(0.481, 0.001))
+    assert_that(df.loc['Large (96^2 < area)', 'AR@10 (%)'], close_to(0.544, 0.001))
+    assert_that(df.loc['Large (96^2 < area)', 'AR@100 (%)'], close_to(0.549, 0.001))
 
     assert_that(result.conditions_results[0], equal_condition_result(
         details='Found lowest score of 0.1 for area Small (area < 32^2) and IoU AR@1 (%)',
@@ -90,6 +90,6 @@ def test_coco_area_param(coco_visiondata_test):
     assert_that(df.loc['Medium (40^2 < area < 100^2)', 'AR@10 (%)'], close_to(0.428, 0.001))
     assert_that(df.loc['Medium (40^2 < area < 100^2)', 'AR@100 (%)'], close_to(0.446, 0.001))
 
-    assert_that(df.loc['Large (area < 100^2)', 'AR@1 (%)'], close_to(0.482, 0.001))
-    assert_that(df.loc['Large (area < 100^2)', 'AR@10 (%)'], close_to(0.547, 0.001))
-    assert_that(df.loc['Large (area < 100^2)', 'AR@100 (%)'], close_to(0.551, 0.001))
+    assert_that(df.loc['Large (100^2 < area)', 'AR@1 (%)'], close_to(0.482, 0.001))
+    assert_that(df.loc['Large (100^2 < area)', 'AR@10 (%)'], close_to(0.547, 0.001))
+    assert_that(df.loc['Large (100^2 < area)', 'AR@100 (%)'], close_to(0.551, 0.001))
