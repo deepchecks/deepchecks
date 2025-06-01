@@ -52,9 +52,9 @@ def test_coco(coco_visiondata_test):
     assert_that(df.loc['Medium (32^2 < area < 96^2)', 'mAP@.50 (%)'], close_to(0.600, 0.001))
     assert_that(df.loc['Medium (32^2 < area < 96^2)', 'mAP@.75 (%)'], close_to(0.349, 0.001))
 
-    assert_that(df.loc['Large (area < 96^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.541, 0.001))
-    assert_that(df.loc['Large (area < 96^2)', 'mAP@.50 (%)'], close_to(0.674, 0.001))
-    assert_that(df.loc['Large (area < 96^2)', 'mAP@.75 (%)'], close_to(0.585, 0.001))
+    assert_that(df.loc['Large (96^2 < area)', 'mAP@[.50::.95] (avg.%)'], close_to(0.541, 0.001))
+    assert_that(df.loc['Large (96^2 < area)', 'mAP@.50 (%)'], close_to(0.674, 0.001))
+    assert_that(df.loc['Large (96^2 < area)', 'mAP@.75 (%)'], close_to(0.585, 0.001))
 
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
@@ -104,9 +104,9 @@ def test_coco_area_param(coco_visiondata_test):
     assert_that(df.loc['Medium (40^2 < area < 100^2)', 'mAP@.50 (%)'], close_to(0.622, 0.001))
     assert_that(df.loc['Medium (40^2 < area < 100^2)', 'mAP@.75 (%)'], close_to(0.388, 0.001))
 
-    assert_that(df.loc['Large (area < 100^2)', 'mAP@[.50::.95] (avg.%)'], close_to(0.542, 0.001))
-    assert_that(df.loc['Large (area < 100^2)', 'mAP@.50 (%)'], close_to(0.673, 0.001))
-    assert_that(df.loc['Large (area < 100^2)', 'mAP@.75 (%)'], close_to(0.592, 0.001))
+    assert_that(df.loc['Large (100^2 < area)', 'mAP@[.50::.95] (avg.%)'], close_to(0.542, 0.001))
+    assert_that(df.loc['Large (100^2 < area)', 'mAP@.50 (%)'], close_to(0.673, 0.001))
+    assert_that(df.loc['Large (100^2 < area)', 'mAP@.75 (%)'], close_to(0.592, 0.001))
     assert_that(result.display, has_length(greater_than(0)))
 
 
