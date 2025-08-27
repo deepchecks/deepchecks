@@ -799,7 +799,7 @@ def calculate_builtin_properties(
         nan_indices = {i for i, seq in enumerate(batch) if pd.isna(seq) is True}
         filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
 
-        kwargs.pop('language_property_result')
+        kwargs['language_property_result'] = []
         samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
         if 'Language' in properties_types:
             batch_properties['Language'].extend(samples_language)
