@@ -805,8 +805,8 @@ def calculate_builtin_properties(
         if 'Language' in properties_types:
             lang_result_index = 0
             fill_na_samples_language = []
-            for i in range(len(batch)):
-                if i in nan_indices:
+            for batch_idx in range(len(batch)):
+                if batch_idx in nan_indices:
                     fill_na_samples_language.append(np.nan)
                 else:
                     fill_na_samples_language.append(samples_language[lang_result_index])
@@ -845,8 +845,8 @@ def calculate_builtin_properties(
 
             # Fill in nan values for samples that were filtered out:
             result_index = 0
-            for index in range(len(batch)):
-                if index in nan_indices or (index in non_english_indices and
+            for batch_idx in range(len(batch)):
+                if batch_idx in nan_indices or (batch_idx in non_english_indices and
                                             ignore_non_english_samples_for_english_properties and
                                             prop['name'] in ENGLISH_ONLY_PROPERTIES):
                     calculated_properties[prop['name']].append(np.nan)

@@ -230,7 +230,7 @@ class MaskDataset(VisionDataset):
             # In pytorch, the input should be [xmin, ymin, xmax, ymax]
             boxes = []
             labels = []
-            for i in objects:
+            for i in objects:  # pylint: disable=not-an-iterable
                 boxes.append(MaskDataset._generate_box(i))
                 labels.append(MaskDataset._generate_label(i))
             boxes = torch.as_tensor(boxes, dtype=torch.float32)
