@@ -847,8 +847,8 @@ def calculate_builtin_properties(
             result_index = 0
             for batch_idx in range(len(batch)):
                 if batch_idx in nan_indices or (batch_idx in non_english_indices and
-                                            ignore_non_english_samples_for_english_properties and
-                                            prop['name'] in ENGLISH_ONLY_PROPERTIES):
+                                                ignore_non_english_samples_for_english_properties and
+                                                prop['name'] in ENGLISH_ONLY_PROPERTIES):
                     calculated_properties[prop['name']].append(np.nan)
                 else:
                     calculated_properties[prop['name']].append(batch_properties[prop['name']][result_index])
