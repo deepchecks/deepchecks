@@ -14,7 +14,7 @@ import pathlib
 import typing as t
 import warnings
 from numbers import Number
-
+from dataset import Dataset as HFDataset
 import numpy as np
 import pandas as pd
 
@@ -134,6 +134,13 @@ class TextData:
             properties: t.Optional[pd.DataFrame] = None,
             categorical_properties: t.Optional[t.List[str]] = None,
     ):
+        # Support passing a HuggingFace dataset directly
+        if isinstance(raw_text, HFDataset):
+            df = raw_text.to_pandas()
+            raw_text = df["text"].astype(str).tolist()
+            if "label" in df.columns:
+                label = df["label"].tolist()
+
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
             if label is not None:
@@ -728,6 +735,34 @@ class TextData:
         if not isinstance(obj, cls):
             raise DeepchecksValueError(f'{obj} is not a {cls.__name__} instance')
         return obj.copy()
+    @classmethod
+    def from_huggingface(cls, hf_dataset: HFDataset, text_column: str = "text", label_column: str = None):
+        """Create TextData directly from a HuggingFace Dataset object.
+
+        Parameters
+        ----------
+        hf_dataset : HFDataset
+            HuggingFace Dataset object.
+        text_column : str, default "text"
+            Name of the column containing raw text.
+        label_column : str, default None
+            Name of the label column, if present.
+
+        Returns
+        -------
+        TextData
+        """
+        # Convert to pandas
+        df = hf_dataset.to_pandas()
+
+        raw_text = df[text_column].astype(str).tolist()
+
+        if label_column and label_column in df.columns:
+            labels = df[label_column].tolist()
+        else:
+            labels = None
+
+        return cls(raw_text=raw_text, label=labels, task_type="text_classification" if labels is not None else None)
 
     def validate_textdata_compatibility(self, other_text_data: 'TextData') -> bool:
         """Verify that all provided datasets share same label name and task types.
