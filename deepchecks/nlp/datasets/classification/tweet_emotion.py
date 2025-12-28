@@ -29,10 +29,10 @@ from deepchecks.utils.builtin_datasets_utils import read_and_save_data
 
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions', 'load_under_annotated_data']
 
-_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
-_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/40564880'
-_PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39717619'
-_PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/39486889'
+_EMBEDDINGS_URL = 'https://figshare.com/ndownloader/files/40564880'
+_PROPERTIES_URL = 'https://figshare.com/ndownloader/files/39717619'
+_PREDICTIONS_URL = 'https://figshare.com/ndownloader/files/39264461'
 
 ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet_emotion'
 _target = 'label'

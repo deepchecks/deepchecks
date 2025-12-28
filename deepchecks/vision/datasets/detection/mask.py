@@ -54,7 +54,7 @@ class MaskPrecalculatedModel(nn.Module):
 
     def __init__(self, device: t.Union[str, torch.device] = 'cpu'):
         super().__init__()
-        self._pred_dict_url = 'https://ndownloader.figshare.com/files/38116641'
+        self._pred_dict_url = 'https://figshare.com/ndownloader/files/38116641'
         pred_dict_path = os.path.join(MASK_DIR, 'pred_dict.json')
         urllib.request.urlretrieve(self._pred_dict_url, pred_dict_path)
         with open(pred_dict_path, 'r', encoding='utf8') as f:

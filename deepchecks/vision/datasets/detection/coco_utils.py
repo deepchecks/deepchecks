@@ -35,7 +35,7 @@ def download_coco128(root: Path):
 
     if images_dir.exists() and labels_dir.exists():
         return coco_dir, 'train2017'
-    with urlopen('https://ndownloader.figshare.com/files/37681632') as http_response:
+    with urlopen('https://figshare.com/ndownloader/files/37681632') as http_response:
         with ZipFile(BytesIO(http_response.read())) as zip_file:
             zip_file.extractall(path=root)
 

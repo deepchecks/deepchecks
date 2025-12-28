@@ -45,10 +45,10 @@ __all__ = ['load_data', 'load_fitted_model']
 
 from deepchecks.utils.function import run_available_kwargs
 
-_MODEL_URL = 'https://ndownloader.figshare.com/files/35692190'
-_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/35685218'
-_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/35684222'
-_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/35684816'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/35692190'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/35685218'
+_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/35684222'
+_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/35684816'
 _MODEL_VERSION = '1.0.2'
 _target = 'loan_status'
 _datetime_name = 'issue_d'
