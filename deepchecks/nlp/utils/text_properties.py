@@ -553,7 +553,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
         {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
         {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-    )
+)
 
 ALL_PROPERTIES: Tuple[TextProperty, ...] = \
     (
@@ -566,7 +566,7 @@ ALL_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
         {'name': 'Sentences Count', 'method': sentences_count, 'output_type': 'numeric'},
         {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
-    ) + DEFAULT_PROPERTIES
+) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 
@@ -800,10 +800,21 @@ def calculate_builtin_properties(
         filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
 
         kwargs['language_property_result'] = []
+
         samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
         if 'Language' in properties_types:
-            batch_properties['Language'].extend(samples_language)
-            calculated_properties['Language'].extend(samples_language)
+            lang_result_index = 0
+            fill_na_samples_language = []
+            for batch_idx in range(len(batch)):
+                if batch_idx in nan_indices:
+                    fill_na_samples_language.append(np.nan)
+                else:
+                    fill_na_samples_language.append(samples_language[lang_result_index])
+                    lang_result_index += 1
+
+            batch_properties['Language'].extend(fill_na_samples_language)
+            calculated_properties['Language'].extend(fill_na_samples_language)
+
         kwargs['language_property_result'] = samples_language  # Pass the language property to other properties
         kwargs['batch_size'] = batch_size
 
@@ -834,10 +845,10 @@ def calculate_builtin_properties(
 
             # Fill in nan values for samples that were filtered out:
             result_index = 0
-            for index, seq in enumerate(batch):
-                if index in nan_indices or (index in non_english_indices and
-                                            ignore_non_english_samples_for_english_properties and
-                                            prop['name'] in ENGLISH_ONLY_PROPERTIES):
+            for batch_idx in range(len(batch)):
+                if batch_idx in nan_indices or (batch_idx in non_english_indices and
+                                                ignore_non_english_samples_for_english_properties and
+                                                prop['name'] in ENGLISH_ONLY_PROPERTIES):
                     calculated_properties[prop['name']].append(np.nan)
                 else:
                     calculated_properties[prop['name']].append(batch_properties[prop['name']][result_index])
