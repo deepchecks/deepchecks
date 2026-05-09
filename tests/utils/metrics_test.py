@@ -228,3 +228,83 @@ def test_mse_diabetes(diabetes_split_dataset_and_model):
     # Assert
     assert_that(score.mean(), close_to(-1 * 3296, 1))
     assert_that(score.mean(), close_to(-1 * score_sklearn, 0.01))
+
+
+# Regression tests for deepchecks/deepchecks#2806: ``make_scorer(...,
+# needs_proba=True)`` was deprecated in scikit-learn 1.4 and removed in
+# 1.6, so on a current sklearn the call raised at module-import time and
+# anything that used ``binary_scorers_dict`` / ``multiclass_scorers_dict``
+# (e.g. passing ``scorers=['neg_log_loss']`` to a check) failed before
+# scoring. The fix is to switch to ``response_method='predict_proba'``
+# whenever sklearn>=1.4 is installed.
+#
+# These tests fail on origin/main when run against sklearn>=1.6 (the
+# module import raises ``TypeError: make_scorer() got an unexpected
+# keyword argument 'needs_proba'``) and pass on this branch.
+
+def test_neg_log_loss_scorer_kwargs_match_runtime_sklearn():
+    """Verify the module-level kwarg switch picks the right knob for the
+    installed sklearn — the *single* place where the fix lives."""
+    from packaging import version
+    from sklearn import __version__ as scikit_version
+
+    from deepchecks.tabular.metric_utils.scorers import _PROBA_SCORER_KWARGS
+
+    if version.parse(scikit_version) >= version.parse('1.4'):
+        assert_that(_PROBA_SCORER_KWARGS, is_({'response_method': 'predict_proba'}))
+    else:
+        assert_that(_PROBA_SCORER_KWARGS, is_({'needs_proba': True}))
+
+
+def test_neg_log_loss_scorer_constructible():
+    """The bug from #2806 manifests at module-import time on sklearn>=1.6;
+    asserting the scorer is in the registry doubles as an import-time
+    smoke test."""
+    from deepchecks.tabular.metric_utils.scorers import _str_to_scorer_dict, binary_scorers_dict
+
+    assert_that('neg_log_loss' in binary_scorers_dict, is_(True))
+    assert_that('neg_log_loss' in _str_to_scorer_dict, is_(True))
+    assert_that('roc_auc_per_class' in _str_to_scorer_dict, is_(True))
+
+
+def test_neg_log_loss_scorer_callable_on_classifier():
+    """Issue #2806: the user-visible failure is at *call* time, not at
+    ``make_scorer`` time — sklearn 1.6+ silently swallows ``needs_proba``
+    via ``**kwargs`` in ``make_scorer`` but then forwards it to
+    ``log_loss`` when the scorer is invoked, raising
+    ``TypeError: got an unexpected keyword argument 'needs_proba'``.
+    This test exercises the call path on a trivial in-memory binary
+    classifier — no data fixtures required, no upstream dataset download.
+    On origin/main with sklearn>=1.6 it raises the TypeError above; on
+    this branch it returns a finite negative log-loss."""
+    import numpy as np
+    from sklearn.linear_model import LogisticRegression
+
+    from deepchecks.tabular.metric_utils.scorers import binary_scorers_dict
+
+    X = np.array([[0., 0.], [1., 1.], [0., 1.], [1., 0.], [0., 0.5], [1., 0.5]])
+    y_binary = np.array([0, 1, 0, 1, 0, 1])
+    binary_clf = LogisticRegression().fit(X, y_binary)
+
+    neg_log_loss = binary_scorers_dict['neg_log_loss']
+    score = float(neg_log_loss(binary_clf, X, y_binary))
+
+    assert_that(score <= 0.0, is_(True))
+
+
+def test_roc_auc_per_class_scorer_scores_multiclass(iris_split_dataset_and_model):
+    """Issue #2806: the second occurrence of ``needs_proba`` in this module
+    was on ``roc_auc_per_class`` in ``multiclass_scorers_dict``. The
+    existing ``test_classification_deepchecks_scorers`` integration test
+    (in ``train_test_performance_test.py``) already covers the iris-fitted
+    score = 0.997 expectation — this test asserts the same observable
+    behavior is preserved by going straight through the scorer registry,
+    so a regression is caught even if the integration test path changes."""
+    from deepchecks.tabular.metric_utils.scorers import multiclass_scorers_dict
+
+    _, test_ds, clf = iris_split_dataset_and_model
+    scorer = deepchecks_scorer(multiclass_scorers_dict['roc_auc_per_class'], clf, test_ds)
+
+    score = scorer(clf, test_ds)
+
+    assert_that(score[1], close_to(0.997, 0.01))
