@@ -49,6 +49,17 @@ from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.typing import BasicModel
 from deepchecks.utils.validation import is_sequence_not_str
 
+# sklearn 1.4 deprecated ``needs_proba``/``needs_threshold`` in favor of
+# ``response_method``; sklearn 1.6 removed them outright (see
+# https://scikit-learn.org/stable/whats_new/v1.4.html#sklearn-metrics).
+# ``deepchecks/deepchecks#2806`` tracks the resulting failure when users
+# combine deepchecks with a current sklearn. Pick the right kwargs once,
+# at module import, instead of try/except-ing each ``make_scorer`` call.
+if version.parse(scikit_version) >= version.parse('1.4'):
+    _PROBA_SCORER_KWARGS = {'response_method': 'predict_proba'}
+else:
+    _PROBA_SCORER_KWARGS = {'needs_proba': True}
+
 if TYPE_CHECKING:
     from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 
@@ -148,12 +159,12 @@ binary_scorers_dict = {
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
     'jaccard': make_scorer(jaccard_score, zero_division=0),
     'roc_auc': get_scorer('roc_auc'),
-    'neg_log_loss': make_scorer(log_loss, greater_is_better=False, needs_proba=True, labels=[0, 1]),
+    'neg_log_loss': make_scorer(log_loss, greater_is_better=False, labels=[0, 1], **_PROBA_SCORER_KWARGS),
     **common_classification_metrics
 }
 
 multiclass_scorers_dict = {
-    'roc_auc_per_class': make_scorer(roc_auc_per_class, needs_proba=True),
+    'roc_auc_per_class': make_scorer(roc_auc_per_class, **_PROBA_SCORER_KWARGS),
     'roc_auc_ovr': get_scorer('roc_auc_ovr'),
     'roc_auc_ovo': get_scorer('roc_auc_ovo'),
     'roc_auc_ovr_weighted': get_scorer('roc_auc_ovr_weighted'),
