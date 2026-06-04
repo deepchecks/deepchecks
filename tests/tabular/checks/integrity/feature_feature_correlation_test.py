@@ -88,3 +88,30 @@ def test_feature_feature_correlation_fail_condition(adult_no_split):
                                        details=f'Correlation is greater than {threshold} for pairs {high_pairs}',
                                        name=f'Not more than {num_pairs} pairs are correlated above {threshold}')
             ))
+
+def test_feature_feature_correlation_negative_magnitude_condition():
+    # Create a mock dataset with an explicit, high-magnitude negative correlation
+    np.random.seed(42)
+    feature_x = np.random.randn(100)
+    # Inverse relationship guarantees a spearman correlation near -1.0
+    feature_y = -feature_x * 2 + np.random.randn(100) * 0.01
+    
+    df = pd.DataFrame({'feat_a': feature_x, 'feat_b': feature_y})
+    ds = Dataset(df, features=['feat_a', 'feat_b'])
+    
+    threshold = 0.9
+    num_pairs = 0  # 0 expected pairs means finding 1 high-magnitude pair will trigger a FAIL
+    
+    check = FeatureFeatureCorrelation()
+    result = check.add_condition_max_number_of_pairs_above_threshold(threshold, num_pairs).run(ds)
+    
+    # Expected pair sorted alphabetically by feature name based on the condition's internal (i < j) filter
+    expected_high_pairs = [('feat_a', 'feat_b')]
+    
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(is_pass=False,
+                               details=f'Correlation is greater than {threshold} for pairs {expected_high_pairs}',
+                               name=f'Not more than {num_pairs} pairs are correlated above {threshold}')
+    ))
+
+    
