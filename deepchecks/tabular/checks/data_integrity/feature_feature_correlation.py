@@ -105,7 +105,9 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
 
         # Display
         if context.with_display:
-            top_n_features = full_df.max(axis=1).sort_values(ascending=False).head(self.n_top_columns).index
+            temp_df = full_df.copy()
+            np.fill_diagonal(temp_df.values, np.nan)
+            top_n_features = temp_df.abs().max(axis=1).sort_values(ascending=False).head(self.n_top_columns).index
             top_n_df = full_df.loc[top_n_features, top_n_features].abs()
             num_nans = top_n_df.isna().sum().sum()
             top_n_df.fillna(0.0, inplace=True)
@@ -126,7 +128,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
     def add_condition_max_number_of_pairs_above_threshold(self, threshold: float = 0.9, n_pairs: int = 0):
         """Add condition that all pairwise correlations are less than threshold, except for the diagonal."""
         def condition(result):
-            results_ge = result[result > threshold].stack().index.to_list()
+            results_ge = result[result.abs() > threshold].stack().index.to_list()
             high_corr_pairs = [(i, j) for (i, j) in results_ge if i < j]  # remove diagonal and duplicate pairs
 
             if len(high_corr_pairs) > n_pairs:
