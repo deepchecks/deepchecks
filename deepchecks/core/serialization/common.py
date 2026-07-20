@@ -95,11 +95,15 @@ def normalize_value(value: object) -> t.Any:
     Any of the basic builtin datatypes
     """
     if isinstance(value, pd.DataFrame):
-        return value.to_json(orient='records')
+        return value.to_dict(orient='records')
     elif isinstance(value, Styler):
-        return value.data.to_json(orient='records')
+        return value.data.to_dict(orient='records')
     elif isinstance(value, (np.generic, np.ndarray)):
         return un_numpy(value)
+    elif isinstance(value, dict):
+        return {key: normalize_value(item) for key, item in value.items()}
+    elif isinstance(value, (list, tuple)):
+        return [normalize_value(item) for item in value]
     else:
         return Pickler(unpicklable=False).flatten(value)
 
