@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Boosting overfit check module."""
+import warnings
 from copy import deepcopy
-from typing import TYPE_CHECKING, Callable, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Tuple, Union
 
 import numpy as np
 import plotly.graph_objects as go
@@ -147,10 +148,10 @@ class BoostingOverfit(TrainTestCheck):
 
     Parameters
     ----------
-    scorer : Union[Callable, str] , default: None
-        Scorer used to verify the model, either function or sklearn scorer name.
-    scorer_name : str , default: None
-        Name to be displayed in the plot on y-axis. must be used together with 'scorer'
+    scorers : Union[List[str], Dict[str, Union[str, Callable]]] , default: None
+        Scorers to override the default scorers. Only the first scorer is used.
+    alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
+        Deprecated, please use scorers instead.
     num_steps : int , default: 20
         Number of splits of the model iterations to check.
     n_samples : int , default: 1_000_000
@@ -162,13 +163,19 @@ class BoostingOverfit(TrainTestCheck):
     def __init__(
         self,
         alternative_scorer: Tuple[str, Union[str, Callable]] = None,
+        scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
         num_steps: int = 20,
         n_samples: int = 1_000_000,
         random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.alternative_scorer = dict([alternative_scorer]) if alternative_scorer else None
+        if alternative_scorer is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_scorer is deprecated. '
+                          f'Please use scorers instead.', DeprecationWarning)
+            scorers = dict([alternative_scorer])
+        self.alternative_scorer = None
+        self.scorers = scorers
         self.num_steps = num_steps
         self.n_samples = n_samples
         self.random_state = random_state
@@ -189,7 +196,7 @@ class BoostingOverfit(TrainTestCheck):
         model = context.model
 
         # Get default scorer
-        scorer = context.get_single_scorer(self.alternative_scorer)
+        scorer = context.get_scorers(self.scorers)[0]
 
         # Get number of estimators on model
         num_estimators = PartialBoostingModel.n_estimators(model)
@@ -252,8 +259,8 @@ class BoostingOverfit(TrainTestCheck):
 
     def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
         """Return check instance config."""
-        if self.alternative_scorer is not None:
-            for k, v in self.alternative_scorer.items():
+        if isinstance(self.scorers, dict):
+            for k, v in self.scorers.items():
                 if not isinstance(v, str):
                     reference = doclink(
                         'supported-metrics-by-string',
