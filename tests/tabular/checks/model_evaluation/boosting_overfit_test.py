@@ -195,7 +195,7 @@ def test_boosting_regressor_cat(diabetes_split_dataset_and_model_cat):
     assert_that(mean(test_scores), close_to(-59.04, 0.01))
 
 
-def test_boosting_classifier_with_metric(iris):
+def test_boosting_classifier_with_scorers(iris):
     # Arrange
     train_df, validation_df = train_test_split(iris, test_size=0.33, random_state=0)
     train = Dataset(train_df, label='target')
@@ -205,7 +205,7 @@ def test_boosting_classifier_with_metric(iris):
     clf.fit(train.data[train.features], train.data[train.label_name])
 
     # Act
-    result = BoostingOverfit(alternative_scorer=('recall', 'recall_micro')).run(train, validation, clf)
+    result = BoostingOverfit(scorers=['recall_micro', 'precision_micro']).run(train, validation, clf)
 
     # Assert
     train_scores = result.value['train']

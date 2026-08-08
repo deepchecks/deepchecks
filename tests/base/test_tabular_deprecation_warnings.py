@@ -18,7 +18,8 @@ from sklearn.metrics import accuracy_score
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import (CategoryMismatchTrainTest, MultiModelPerformanceReport,
-                                       RegressionSystematicError, SegmentPerformance, SimpleModelComparison,
+                                       BoostingOverfit, RegressionSystematicError, SegmentPerformance,
+                                       SimpleModelComparison,
                                        TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
                                        WeakSegmentsPerformance, WholeDatasetDrift)
 
@@ -95,6 +96,31 @@ def test_deprecation_warning_multi_model_performance_report():
     with warnings.catch_warnings():
         warnings.simplefilter('error')
         _ = MultiModelPerformanceReport()
+
+
+@pytest.mark.parametrize(
+    ('check_class', 'alternative_scorer'),
+    [
+        (BoostingOverfit, ('Recall', 'recall_micro')),
+        (WeakSegmentsPerformance, {'Recall': 'recall_micro'}),
+    ],
+)
+def test_deprecation_warning_alternative_scorer(check_class, alternative_scorer):
+    with pytest.warns(DeprecationWarning, match='alternative_scorer'):
+        check = check_class(alternative_scorer=alternative_scorer)
+
+    assert check.scorers == {'Recall': 'recall_micro'}
+
+
+@pytest.mark.parametrize('check_class', [BoostingOverfit, WeakSegmentsPerformance])
+def test_scorers_parameter_does_not_raise_warning(check_class):
+    scorers = ['recall_micro', 'precision_micro']
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
+        check = check_class(scorers=scorers)
+
+    assert check.scorers == scorers
 
 
 def test_deprecation_category_mismatch_train_test():

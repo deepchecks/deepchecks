@@ -57,9 +57,11 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     max_categories_weak_segment: Optional[int] , default: None
         Maximum number of categories that can be included in a weak segment per categorical feature.
         If None, the number of categories is not limited.
-    alternative_scorer : Dict[str, Union[str, Callable]] , default: None
-        Scorer to use as performance measure, either function or sklearn scorer name.
+    scorers : Union[List[str], Dict[str, Union[str, Callable]]] , default: None
+        Scorers to use as performance measure. Only the first scorer is used.
         If None, a default scorer (per the model type) will be used.
+    alternative_scorer : Dict[str, Union[str, Callable]] , default: None
+        Deprecated, please use scorers instead.
     score_per_sample: Union[np.array, pd.Series, None], default: None
         Score per sample are required to detect relevant weak segments. Should follow the convention that a sample with
         a higher score mean better model performance on that sample. If provided, the check will also use provided
@@ -89,6 +91,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             segment_minimum_size_ratio: float = 0.05,
             max_categories_weak_segment: Optional[int] = None,
             alternative_scorer: Dict[str, Union[str, Callable]] = None,
+            scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
             loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
             score_per_sample: Union[np.ndarray, pd.Series, None] = None,
             n_samples: int = 10_000,
@@ -103,8 +106,12 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             warnings.warn(f'{self.__class__.__name__}: loss_per_sample is deprecated. '
                           f'Please use score_per_sample instead.', DeprecationWarning)
             score_per_sample = - np.asarray(loss_per_sample)
-        if score_per_sample is not None and alternative_scorer:
-            raise DeepchecksValueError('Cannot use both score_per_sample and alternative_scorer')
+        if alternative_scorer is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_scorer is deprecated. '
+                          f'Please use scorers instead.', DeprecationWarning)
+            scorers = alternative_scorer
+        if score_per_sample is not None and scorers:
+            raise DeepchecksValueError('Cannot use both score_per_sample and scorers')
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_features = n_top_features
@@ -115,7 +122,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.random_state = random_state
         self.score_per_sample = score_per_sample
         self.loss_per_sample = loss_per_sample
-        self.alternative_scorer = alternative_scorer
+        self.alternative_scorer = None
+        self.scorers = scorers
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
         self.multiple_segments_per_feature = multiple_segments_per_feature
 
@@ -155,7 +163,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
             dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                       validate_data_on_predict=False)
-            scorer = context.get_single_scorer(self.alternative_scorer)
+            scorer = context.get_scorers(self.scorers)[0]
             avg_score = round(scorer(dummy_model, encoded_dataset), 3)
 
         # Calculating feature rank
@@ -193,8 +201,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
     def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
         """Return checks instance config."""
-        if isinstance(self.alternative_scorer, dict):
-            for k, v in self.alternative_scorer.items():
+        if isinstance(self.scorers, dict):
+            for k, v in self.scorers.items():
                 if callable(v):
                     reference = doclink(
                         'supported-metrics-by-string',

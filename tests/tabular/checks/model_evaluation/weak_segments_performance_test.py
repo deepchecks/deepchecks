@@ -91,13 +91,13 @@ def test_segment_performance_iris_score_per_sample(iris_split_dataset_and_model)
     assert_that(segments.columns[0], equal_to('Average Score Per Sample'))
 
 
-def test_segment_performance_iris_alternative_scorer(iris_split_dataset_and_model):
+def test_segment_performance_iris_scorers(iris_split_dataset_and_model):
     # Arrange
     _, val, model = iris_split_dataset_and_model
     scorer = {'F1': make_scorer(f1_score, average='micro')}
 
     # Act
-    result = WeakSegmentsPerformance(alternative_scorer=scorer).run(val, model)
+    result = WeakSegmentsPerformance(scorers=scorer).run(val, model)
     segments = result.value['weak_segments_list']
 
     # Assert
