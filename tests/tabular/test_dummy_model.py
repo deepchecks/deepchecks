@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import pytest
 from hamcrest import assert_that, calling, close_to, has_items, raises
 
 from deepchecks.core.check_result import CheckResult
@@ -41,6 +42,15 @@ def _dummify_model(train, test, model):
             y_proba_test = model.predict_proba(test.features_columns)
 
     return y_pred_train, y_pred_test, y_proba_train, y_proba_test
+
+
+def test_dummy_model_rejects_additional_columns_with_clear_error(iris_split_dataset_and_model):
+    train, _, model = iris_split_dataset_and_model
+    y_pred_train, _, _, _ = _dummify_model(train, None, model)
+    context = Context(train=train, y_pred_train=y_pred_train)
+
+    with pytest.raises(DeepchecksValueError, match='exactly the feature columns'):
+        context.model.predict(train.data)
 
 
 # copied from roc_report_test

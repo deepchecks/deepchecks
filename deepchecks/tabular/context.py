@@ -129,6 +129,14 @@ class _DummyModel:
             self.predict_proba = self._predict_proba
 
     def _validate_data(self, data: pd.DataFrame):
+        expected_columns = self.feature_df_list[0].columns
+        if not data.columns.equals(expected_columns):
+            raise DeepchecksValueError(
+                'The dummy model expects data with exactly the feature columns used to create it, '
+                f'with no additional columns. Expected columns: {list(expected_columns)}. '
+                f'Received columns: {list(data.columns)}.'
+            )
+
         data = data.sample(min(100, len(data)))
         for feature_df in self.feature_df_list:
             # If all indices are found than test for equality in actual data (statistically significant portion)
