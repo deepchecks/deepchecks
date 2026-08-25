@@ -295,4 +295,6 @@ class LabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin):
 
         return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
                                   f'numerical drift score < {max_allowed_numeric_score}',
-                                  condition)
+                                  condition,
+                                  max_allowed_categorical_score=max_allowed_categorical_score,
+                                  max_allowed_numeric_score=max_allowed_numeric_score)

@@ -254,5 +254,6 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
 
         return self.add_condition(
             f'drift score < {max_allowed_drift_score} for image properties drift',
-            condition
+            condition,
+            max_allowed_drift_score=max_allowed_drift_score
         )
