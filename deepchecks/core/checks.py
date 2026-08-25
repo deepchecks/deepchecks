@@ -108,6 +108,11 @@ class BaseCheck(abc.ABC):
         self._conditions_index += 1
         return self
 
+    @property
+    def conditions(self) -> List[Condition]:
+        """Return the conditions added to this check."""
+        return list(self._conditions.values())
+
     def clean_conditions(self):
         """Remove all conditions from this check instance."""
         self._conditions.clear()

@@ -605,7 +605,7 @@ def drift_condition(max_allowed_categorical_score: float,
         Determines the number of properties with drift score above threshold needed to fail the condition.
     """
 
-    def condition(result: dict):
+    def condition(result: dict, **kwargs):
         cat_method, num_method = get_drift_method(result)
         cat_drift_props = {prop: d['Drift score'] for prop, d in result.items()
                            if d['Method'] in SUPPORTED_CATEGORICAL_METHODS}

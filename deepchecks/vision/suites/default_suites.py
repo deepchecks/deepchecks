@@ -27,7 +27,8 @@ __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_inte
 
 
 def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_properties: List[Dict[str, Any]] = None,
-                          **kwargs) -> Suite:
+                          label_drift_condition_kwargs: Optional[Dict[str, Any]] = None,
+                          image_property_drift_condition_kwargs: Optional[Dict[str, Any]] = None, **kwargs) -> Suite:
     """Suite for validating correctness of train-test split, including distribution, \
     integrity and leakage checks.
 
@@ -76,6 +77,13 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
           but these numbers do not have inherent value.
 
         For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
+
+    label_drift_condition_kwargs : Dict[str, Any], default: None
+        Additional arguments to pass to ``LabelDrift.add_condition_drift_score_less_than``.
+
+    image_property_drift_condition_kwargs : Dict[str, Any], default: None
+        Additional arguments to pass to ``ImagePropertyDrift.add_condition_drift_score_less_than``.
+
     **kwargs : dict
         additional arguments to pass to the checks.
 
@@ -101,12 +109,16 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
     """
     args = locals()
     args.pop('kwargs')
+    label_drift_condition_kwargs = args.pop('label_drift_condition_kwargs') or {}
+    image_property_drift_condition_kwargs = args.pop('image_property_drift_condition_kwargs') or {}
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
 
     return Suite('Train Test Validation Suite', NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
-                 HeatmapComparison(**kwargs), LabelDrift(**kwargs).add_condition_drift_score_less_than(),
-                 ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(), ImageDatasetDrift(**kwargs),
+                 HeatmapComparison(**kwargs), LabelDrift(**kwargs).add_condition_drift_score_less_than(
+                     **label_drift_condition_kwargs),
+                 ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(
+                     **image_property_drift_condition_kwargs), ImageDatasetDrift(**kwargs),
                  PropertyLabelCorrelationChange(**kwargs).add_condition_property_pps_difference_less_than(), )
 
 

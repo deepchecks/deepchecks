@@ -19,7 +19,7 @@ from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.datasets.classification import mnist_tensorflow
 from deepchecks.vision.datasets.detection import coco_torch
 from deepchecks.vision.suite import Suite
-from deepchecks.vision.suites.default_suites import full_suite
+from deepchecks.vision.suites.default_suites import full_suite, train_test_validation
 from tests.common import get_expected_results_length, validate_suite_result
 
 
@@ -282,3 +282,30 @@ def test_single_dataset(coco_visiondata_train, coco_visiondata_test):
     assert_that(res_names, contains_inanyorder(*expected_train_headers))
     assert_that(res_test.results, has_length(16))
     assert_that(res_full.results, has_length(23))
+
+
+def test_train_test_validation_custom_drift_condition():
+    suite = train_test_validation(
+        label_drift_condition_kwargs={
+            'max_allowed_categorical_score': 0.1,
+            'max_allowed_numeric_score': 0.1,
+        },
+        image_property_drift_condition_kwargs={
+            'max_allowed_drift_score': 0.1,
+        },
+    )
+
+    label_drift = suite.checks[2]
+    image_property_drift = suite.checks[3]
+
+    assert_that(
+        label_drift.conditions[0].params,
+        is_({
+            'max_allowed_categorical_score': 0.1,
+            'max_allowed_numeric_score': 0.1,
+        })
+    )
+    assert_that(
+        image_property_drift.conditions[0].params,
+        is_({'max_allowed_drift_score': 0.1})
+    )
