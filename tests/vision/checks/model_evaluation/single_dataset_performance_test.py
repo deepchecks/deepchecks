@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 
+import pandas as pd
 from hamcrest import assert_that, close_to, equal_to, has_length
 from ignite.metrics import Accuracy, Precision
 from sklearn.metrics import jaccard_score, make_scorer
 
-from deepchecks.core import ConditionCategory
+from deepchecks.core import CheckResult, ConditionCategory
 from deepchecks.vision.checks import SingleDatasetPerformance
 from deepchecks.vision.metrics_utils import ObjectDetectionTpFpFn
 from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationScorer
@@ -151,3 +152,16 @@ def test_reduce_output(mnist_visiondata_test):
     assert_that(result[('pr', '9')], close_to(0.954, 0.01))
 
     assert_that(check.greater_is_better(), equal_to(True))
+
+
+def test_condition_less_than_for_metric_with_missing_class_name():
+    """A metric aggregated over all classes is stored with a missing class name, and must still be evaluated."""
+    # Arrange
+    value = pd.DataFrame({'Metric': ['Accuracy'], 'Class Name': [pd.NA], 'Value': [0.95]})
+    check = SingleDatasetPerformance().add_condition_less_than(0.9, metrics=['Accuracy'])
+
+    # Act
+    result = check.conditions_decision(CheckResult(value))[0]
+
+    # Assert
+    assert_that(result.category, equal_to(ConditionCategory.FAIL))
