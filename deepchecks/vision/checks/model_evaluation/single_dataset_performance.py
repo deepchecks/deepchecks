@@ -166,14 +166,17 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
                     raise DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in '
                                                f'this check are: {check_result.Metric.unique()}.')
 
-                class_val = check_result[check_result.Metric == metric].groupby('Class Name').Value
+                metric_result = check_result[check_result.Metric == metric]
+                # dropna=False: a metric aggregated over all classes is stored with a missing class name, and
+                # the default dropna=True would drop it, making `all([])` (and `any([])`) silently pass.
+                class_val = metric_result.groupby('Class Name', dropna=False).Value
                 class_lt = class_val.apply(lambda x: x < threshold)
                 if class_mode == 'all':
                     metrics_pass.append(all(class_lt))
                 elif class_mode == 'any':
                     metrics_pass.append(any(class_lt))
-                elif class_mode in class_val.groups:
-                    metrics_pass.append(class_lt[class_val.indices[class_mode]].item())
+                elif class_mode in metric_result['Class Name'].dropna().tolist():
+                    metrics_pass.append(bool(class_lt.loc[class_mode].item()))
                 else:
                     raise DeepchecksValueError(f'class_mode expected be one of the classes in the check results or any '
                                                f'or all, recieved {class_mode}.')
